@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import previewImage from '../../assets/preview.webp';
+import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import axios from 'axios';
+import { motion } from 'framer-motion';
+import API_BASE_URL from '../../config/api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -19,208 +21,187 @@ const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.email || !formData.password) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      alert('Password must be at least 6 characters long');
+      toast.error('Passwords do not match');
       return;
     }
 
     setLoading(true);
-    
-    // Simulate registration process
-    setTimeout(() => {
+    try {
+      await axios.post(`${API_BASE_URL}/auth/register`, formData);
+      toast.success('Registration successful! Please login.');
+      navigate('/login');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Registration failed');
+    } finally {
       setLoading(false);
-      
-      // Show success confirmation
-      const confirmed = window.confirm(
-        `Registration Successful!\n\nUser Details:\nName: ${formData.name}\nEmail: ${formData.email}\nRole: ${formData.role}\n\nClick OK to proceed to login page.`
-      );
-      
-      if (confirmed) {
-        navigate('/login');
-      }
-    }, 1500);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col lg:flex-row">
-      {/* Left Side - Form Section */}
-      <div className="w-full lg:w-1/2 bg-white flex flex-col">
-        {/* Main Content */}
-        <div className="flex-1 px-6 lg:px-12 py-8 lg:py-12 flex items-center">
-          <div className="w-full max-w-md mx-auto">
-            {/* Header */}
-            <div className="mb-8 text-center lg:text-left">
-              <h2 className="text-3xl lg:text-4xl font-bold text-blue-600 mb-4">
-                Create Account
-              </h2>
-              
-              <p className="text-gray-600">
-                Join our platform to get started.
-              </p>
-            </div>
-
-            {/* Registration Form */}
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">Full Name</label>
-                  <input
-                    name="name"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter your full name"
-                    className="w-full px-4 py-3 border-l-4 border-blue-500 bg-gray-50 focus:outline-none focus:bg-white focus:border-blue-600 text-gray-700 font-medium placeholder-gray-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">Email Address</label>
-                  <input
-                    name="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Enter your email address"
-                    className="w-full px-4 py-3 border-l-4 border-blue-500 bg-gray-50 focus:outline-none focus:bg-white focus:border-blue-600 text-gray-700 font-medium placeholder-gray-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">Mobile Number</label>
-                  <input
-                    name="mobile"
-                    type="tel"
-                    value={formData.mobile}
-                    onChange={handleChange}
-                    placeholder="Enter your mobile number"
-                    className="w-full px-4 py-3 border border-gray-200 rounded focus:outline-none focus:border-blue-500 placeholder-gray-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">Role</label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="DSA">DSA</option>
-                    <option value="NBFC">NBFC</option>
-                    <option value="Co-op">Co-op Bank</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">Password</label>
-                  <div className="relative">
-                    <input
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      required
-                      value={formData.password}
-                      onChange={handleChange}
-                      placeholder="Enter your password"
-                      className="w-full px-4 py-3 border border-gray-200 rounded focus:outline-none focus:border-blue-500 placeholder-gray-400"
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">Confirm Password</label>
-                  <div className="relative">
-                    <input
-                      name="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      required
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      placeholder="Confirm your password"
-                      className="w-full px-4 py-3 border border-gray-200 rounded focus:outline-none focus:border-blue-500 placeholder-gray-400"
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3 pt-6 pb-4">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 bg-blue-600 text-white py-3 px-6 rounded font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                  >
-                    {loading ? 'Registering...' : 'Register'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/login')}
-                    className="flex-1 border border-gray-300 text-gray-700 py-3 px-6 rounded font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    Back to Login
-                  </button>
-                </div>
-              </div>
-            </form>
+    <div className="min-h-screen flex flex-col md:grid md:grid-cols-2 bg-gray-100">
+      {/* Left: Form Section */}
+      <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 py-6 bg-white">
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-md space-y-6"
+        >
+          {/* Branding */}
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-indigo-600">SaaS Base Registration</h1>
+            <h2 className="mt-2 text-xl font-semibold text-gray-800">Create your account</h2>
+            <p className="mt-2 text-sm text-gray-600">Join our platform today</p>
           </div>
-        </div>
+
+          {/* Google Sign-in */}
+          <button
+            type="button"
+            className="w-full py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition"
+          >
+            Sign up with Google
+          </button>
+
+          {/* Form */}
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            {/* Name Field */}
+            <motion.input
+              name="name"
+              type="text"
+              required
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Full Name"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              disabled={loading}
+            />
+
+            {/* Email Field */}
+            <motion.input
+              name="email"
+              type="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Email Address"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              disabled={loading}
+            />
+
+            {/* Mobile Field */}
+            <motion.input
+              name="mobile"
+              type="tel"
+              value={formData.mobile}
+              onChange={handleChange}
+              placeholder="Mobile Number"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              disabled={loading}
+            />
+
+            {/* Role Field */}
+            <motion.select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              disabled={loading}
+            >
+              <option value="DSA">DSA</option>
+              <option value="NBFC">NBFC</option>
+              <option value="Co-op">Co-op Bank</option>
+            </motion.select>
+
+            {/* Password Field */}
+            <motion.input
+              name="password"
+              type="password"
+              required
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Password"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              disabled={loading}
+            />
+
+            {/* Confirm Password Field */}
+            <motion.input
+              name="confirmPassword"
+              type="password"
+              required
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm Password"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              disabled={loading}
+            />
+
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              type="submit"
+              disabled={loading}
+              className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition disabled:opacity-50"
+            >
+              {loading ? 'Creating Account...' : 'Create Account'}
+            </motion.button>
+
+            <div className="text-center text-sm">
+              <Link to="/login" className="text-indigo-600 hover:underline">
+                Already have an account? Login Here
+              </Link>
+            </div>
+          </form>
+        </motion.div>
       </div>
 
-      {/* Right Side - Preview Image Section */}
-      <div className="w-full lg:w-1/2 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute top-10 left-10 w-32 h-32 bg-white/20 rounded-full blur-xl"></div>
-        <div className="absolute bottom-20 right-20 w-24 h-24 bg-blue-200/30 rounded-full blur-lg"></div>
-        <div className="absolute top-1/2 left-20 w-16 h-16 bg-purple-200/40 rounded-lg transform rotate-45"></div>
-        
-        {/* Main preview image */}
-        <div className="relative z-10 max-w-sm lg:max-w-lg w-full px-6 lg:px-8">
-          <div className="bg-white rounded-2xl shadow-2xl p-4 lg:p-6">
-            <img 
-              src={previewImage} 
-              alt="Platform Preview" 
-              className="w-full h-auto rounded-xl object-cover"
-            />
-            <div className="mt-4 text-center">
-              <h3 className="text-base lg:text-lg font-semibold text-gray-800 mb-2">Join Our Platform</h3>
-              <p className="text-xs lg:text-sm text-gray-600">Start your journey with us today</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Floating elements */}
-        <div className="absolute top-1/4 right-10 w-8 h-8 bg-blue-500 rounded-full opacity-60 animate-bounce"></div>
-        <div className="absolute bottom-1/3 left-16 w-6 h-6 bg-purple-500 rounded-full opacity-40 animate-pulse"></div>
+      {/* Right: Stats Section */}
+      <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-purple-600 to-pink-500 text-white px-8 py-6 space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-white/10 backdrop-blur-md rounded-xl p-6 w-full max-w-sm shadow-lg"
+        >
+          <h3 className="text-lg font-semibold">WALLET & ACCESS CONTROL</h3>
+          <p className="text-sm mt-2">
+            Prepaid wallet with Razorpay integration and automated access control.  
+            Submissions are allowed only if balance or subscription is valid.
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="bg-white/10 backdrop-blur-md rounded-xl p-6 w-full max-w-sm shadow-lg"
+        >
+          <h3 className="text-lg font-semibold">NOTIFICATIONS & BILLING</h3>
+          <p className="text-sm mt-2">
+            Automated SMS/Email/WhatsApp alerts via MSG91 for low balance, expiry,  
+            and payments. Includes detailed reports and invoice generation.
+          </p>
+        </motion.div>
       </div>
     </div>
   );
